@@ -69,7 +69,8 @@ describe("effect", () => {
     obj.prop = 2
     expect(dummy).toBe(2)
     stop(runner)
-    obj.prop = 3
+    // obj.prop = 3
+    obj.prop++ // 会触发 set 和 get
     expect(dummy).toBe(2)
 
     // 再次运行 runner，effect fn 会再次执行
