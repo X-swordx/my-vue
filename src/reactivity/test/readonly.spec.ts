@@ -1,4 +1,4 @@
-import { readonly, isReadonly } from "../reactive";
+import { readonly, isReadonly, isProxy } from "../reactive";
 
 describe("readonly", () => {
   it("should make nested values readonly", () => {
@@ -11,6 +11,7 @@ describe("readonly", () => {
     // 测试嵌套的情况
     expect(isReadonly(original.bar)).toBe(false)
     expect(isReadonly(wrapped.bar)).toBe(true)
+    expect(isProxy(wrapped)).toBe(true)
   })
 
   it("warn then call set", () => {
