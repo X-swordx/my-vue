@@ -93,8 +93,10 @@ export function effect(fn, options: any = {}) {
   // Object.assign(_effect, option)
   extend(_effect, options)
 
-  _effect.run()
-
+  // lazy 选项， 为 true 时，不会立即执行 fn
+  if(!options.lazy) {
+    _effect.run()
+  }
   const runner: any = _effect.run.bind(_effect) // 解决 this 指向 effect 函数
   runner.effect = _effect
 

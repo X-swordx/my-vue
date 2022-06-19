@@ -90,4 +90,16 @@ describe("effect", () => {
     stop(runner)
     expect(onStop).toHaveBeenCalledTimes(1)
   })
+
+  it('effect lazy', () => {
+    const obj = reactive({ foo: 1 })
+    let dummy = 0
+    effect(() => {
+      dummy = obj.foo
+    }, {
+      lazy: true,
+    })
+
+    expect(dummy).toBe(0)
+  })
 })
