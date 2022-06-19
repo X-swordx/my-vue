@@ -54,6 +54,10 @@ export function track(target, key) {
   if (!dep) {
     depsMap.set(key, dep = new Set())
   }
+  trackEffects(dep)
+}
+
+export function trackEffects(dep) {
   // 已经在 dep 中了，不需要再次添加
   if(dep.has(activeEffect)) return
   dep.add(activeEffect)
@@ -63,7 +67,7 @@ export function track(target, key) {
 
 // 判断存在 activeEffect , 避免 activeEffect 为 undefined 报错
 // 判断是否需要追踪依赖
-function isTracking() {
+export function isTracking() {
   return shouldTrack && activeEffect !== undefined
 }
 
@@ -71,11 +75,15 @@ export function trigger(target, key) {
   let depsMap = targetMap.get(target)
   let dep = depsMap.get(key)
 
+  triggerEffects(dep);
+}
+
+export function triggerEffects(dep) {
   for (const effect of dep) {
     if (effect.scheduler) {
-      effect.scheduler()
+      effect.scheduler();
     } else {
-      effect.run()
+      effect.run();
     }
   }
 }
