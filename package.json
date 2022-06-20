@@ -2,15 +2,17 @@
   "name": "my-vue",
   "version": "1.0.0",
   "description": "基于 vue3 源码实现的一个 由TDD驱动的happy path 版 vue3",
-  "main": "index.js",
+  "main": "lib/guide-mini-vue.cjs.js",
+  "module": "lib/guide-mini-vue.esm.js",
   "scripts": {
-    "test": "jest"
+    "test": "jest",
+    "build": "rollup -c rollup.config.js"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/X-swordx/my-vue.git"
   },
-  "keywords": [],
+  "keywords": ["vue3", "typescript", "tdd"],
   "author": "",
   "license": "ISC",
   "bugs": {
@@ -21,9 +23,12 @@
     "@babel/core": "^7.18.2",
     "@babel/preset-env": "^7.18.2",
     "@babel/preset-typescript": "^7.17.12",
+    "@rollup/plugin-typescript": "^8.3.3",
     "@types/jest": "^28.1.1",
     "babel-jest": "^28.1.1",
     "jest": "^28.1.1",
+    "rollup": "^2.75.7",
+    "tslib": "^2.4.0",
     "typescript": "^4.7.3"
   }
 }
