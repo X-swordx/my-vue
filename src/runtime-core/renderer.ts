@@ -20,7 +20,7 @@ function processElement(vnode: any, container: any) {
 
 function mountElement(vnode: any, container) {
   const {type, props, children} = vnode;
-  const el = document.createElement(type);
+  const el = (vnode.el = document.createElement(type));
 
   if(props) {
     for (const key in props) {
@@ -47,15 +47,19 @@ function processComponent(vnode: any, container: any) {
   mountComponent(vnode, container);
 }
 
-function mountComponent(vnode: any, container) {
-  const instance = createComponentInstance(vnode);
+function mountComponent(initialVnode: any, container) {
+  const instance = createComponentInstance(initialVnode);
 
   setupComponent(instance);
-  setupRenderEffect(instance, container);
+  setupRenderEffect(instance, initialVnode, container);
 }
 
-function setupRenderEffect(instance: any, container) {
-  const subTree = instance.render(); // 执行h函数也就是createVNode返回一个vnode
+function setupRenderEffect(instance: any, initialVnode, container) {
+  const { proxy } = instance
+  // 执行h函数也就是createVNode返回一个vnode
+  const subTree = instance.render.call(proxy); 
 
   patch(subTree, container);
+  // 挂载 $el
+  initialVnode.el = subTree.el
 }

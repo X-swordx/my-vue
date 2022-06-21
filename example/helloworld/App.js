@@ -1,7 +1,9 @@
 import { h } from "../../lib/guide-mini-vue.esm.js";
 
+window.self = null;
 export const App = {
   render() {
+    window.self = this;
     // ui
     return h(
       "div",
@@ -9,11 +11,11 @@ export const App = {
         id: "root",
         class: ["red", "hard"],
       },
-      // "hi, " + this.msg
+      "hi, " + this.msg
       // string类型
       // "hi, my-vue"
       // Array类型
-      [h("p", { class:"red"}, "hi"), h("p", {class:"blue"}, "my-vue")]
+      // [h("p", { class:"red"}, "hi"), h("p", {class:"blue"}, "my-vue")]
     );
   },
 
