@@ -27,8 +27,7 @@ function setupStatefulComponent(instance: any) {
 }
 
 function handleSetupResult(instance, setupResult: any) {
-  // function Object
-  // TODO function
+  // function 还是 Object 类型
   if (typeof setupResult === "object") {
     instance.setupState = setupResult;
   }
