@@ -2,8 +2,8 @@
   "name": "my-vue",
   "version": "1.0.0",
   "description": "基于 vue3 源码实现的一个 由TDD驱动的happy path 版 vue3",
-  "main": "lib/guide-mini-vue.cjs.js",
-  "module": "lib/guide-mini-vue.esm.js",
+  "main": "lib/my-vue.cjs.js",
+  "module": "lib/my-vue.esm.js",
   "scripts": {
     "test": "jest",
     "build": "rollup -c rollup.config.js"
