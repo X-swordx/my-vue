@@ -5,13 +5,27 @@ export const isObject = (val) => {
   return val !== null && typeof val === 'object'
 }
 
-export const hasOwn = (obj, key) => {
-  return Object.prototype.hasOwnProperty.call(obj, key)
-}
-
 export const hasChanged = (value, oldValue) => {
   return !Object.is(value, oldValue)
 }
+
+export const hasOwn = (obj, key) => {
+  return Object.prototype.hasOwnProperty.call(obj, key)
+}
+// 转驼峰
+export const camelize = (str: string) => {
+  return str.replace(/-(\w)/g, (_, c: string) => {
+    return c ? c.toUpperCase() : "";
+  });
+};
+
+const capitalize = (str: string) => {
+  return str.charAt(0).toUpperCase() + str.slice(1);
+};
+
+export const toHandlerKey = (str: string) => {
+  return str ? "on" + capitalize(str) : "";
+};
 
 export const isMap = (val: unknown): val is Map<any, any> =>
   toTypeString(val) === '[object Map]'
