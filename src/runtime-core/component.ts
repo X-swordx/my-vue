@@ -4,6 +4,7 @@ import { initProps } from "./componentProps";
 import { emit } from "./componentEmit";
 import { initSlots } from "./componentSlots";
 
+let currentInstance = null;
 export function createComponentInstance(vnode) {
   const component = {
     vnode,
@@ -33,9 +34,11 @@ function setupStatefulComponent(instance: any) {
   const { setup } = Component;
 
   if (setup) {
+    setCurrentInstance(instance);
     const setupResult = setup(shallowReadonly(instance.props), {
       emit: instance.emit
     });
+    setCurrentInstance(null);
 
     handleSetupResult(instance, setupResult);
   }
@@ -54,5 +57,13 @@ function finishComponentSetup(instance: any) {
   const Component = instance.type;
 
   instance.render = Component.render;
+}
+
+export function getCurrentInstance() {
+  return currentInstance;
+}
+
+export function setCurrentInstance(instance) {
+  currentInstance = instance;
 }
 
