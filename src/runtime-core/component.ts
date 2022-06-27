@@ -1,8 +1,10 @@
+
 import { PublicInstanceProxyHandlers } from "./componentPublicInstance";
 import { shallowReadonly } from "../reactivity/reactive";
 import { initProps } from "./componentProps";
 import { emit } from "./componentEmit";
 import { initSlots } from "./componentSlots";
+import { proxyRefs } from "../reactivity";
 
 let currentInstance = null;
 export function createComponentInstance(vnode, parent) {
@@ -14,6 +16,8 @@ export function createComponentInstance(vnode, parent) {
     slots: {},
     provides: parent ? parent.provides : {},
     parent,
+    isMounted: false,
+    subTree: {},
     emit: () => {},
   };
 
@@ -47,9 +51,9 @@ function setupStatefulComponent(instance: any) {
 }
 
 function handleSetupResult(instance, setupResult: any) {
-  // function 还是 Object 类型
+  // 判断setup return 的是 function 还是 Object 类型
   if (typeof setupResult === "object") {
-    instance.setupState = setupResult;
+    instance.setupState = proxyRefs(setupResult);
   }
 
   finishComponentSetup(instance);

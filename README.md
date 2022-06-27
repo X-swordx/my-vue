@@ -2,6 +2,7 @@
 
 基于 vue3 源码实现的一个 由TDD驱动的happy path 版 vue3
 
+**WIP**
 ### reactivity
 
 - [x] reactive 的实现
@@ -51,5 +52,5 @@
 
 - [x] 支持 custom renderer
 
-期待后续根据实现过程输出自己的收获
+后续会抽空输出实现过程自己的收获
 
