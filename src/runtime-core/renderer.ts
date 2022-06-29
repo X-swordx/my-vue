@@ -11,6 +11,8 @@ export function createRenderer(options) {
     createElement: hostCreateElement,
     patchProp: hostPatchProp,
     insert: hostInsert,
+    remove: hostRemove,
+    setElementText: hostSetElementText,
   } = options;
 
   function render(vnode, container) {
@@ -54,11 +56,11 @@ export function createRenderer(options) {
     if (!n1) {
       mountElement(n2, container, parentComponent);
     } else {
-      patchElement(n1, n2, container);
+      patchElement(n1, n2, container, parentComponent);
     }
   }
 
-  function patchElement(n1, n2, container) {
+  function patchElement(n1, n2, container, parentComponent) {
     console.log("patchElement");
     console.log("n1", n1);
     console.log("n2", n2);
@@ -67,7 +69,43 @@ export function createRenderer(options) {
     const newProps = n2.props || EMPTY_OBJ
     const el = (n2.el = n1.el)
 
+    patchChildren(n1, n2, el, parentComponent);
     patchProps(el,oldProps, newProps)
+  }
+
+  function patchChildren(n1, n2, container, parentComponent) {
+    const prevShapeFlag = n1.shapeFlag;
+    const nextShapeFlag = n2.shapeFlag;
+    const c1 = n1.children;
+    const c2 = n2.children;
+
+    if(nextShapeFlag & ShapeFlags.TEXT_CHILDREN) {
+      if(prevShapeFlag & ShapeFlags.ARRAY_CHILDREN) {
+        // array -> text
+        unmountChildren(c1)
+        hostSetElementText(container, c2);
+      } else {
+        if (c1 !== c2) {
+          // text -> text
+          hostSetElementText(container, c2);
+        }
+      }
+    } else {
+      if(prevShapeFlag & ShapeFlags.TEXT_CHILDREN) {
+        // text -> array
+        hostSetElementText(container, "")
+        mountChildren(c2, container, parentComponent)
+      } else {
+        // TODO array -> array
+      }
+    }
+  }
+
+  function unmountChildren(children) {
+    for (let i = 0; i < children.length; i++) {
+      const el = children[i].el;
+      hostRemove(el);
+    }
   }
 
   function patchProps(el, oldProps, newProps) {
