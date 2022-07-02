@@ -4,6 +4,7 @@ import { ShapeFlags } from "../shared/ShapeFlags";
 import { createComponentInstance, setupComponent } from "./component";
 import { createAppAPI } from "./createApp";
 import { Fragment, Text } from "./vnode";
+import { shouldUpdateComponent } from "./componentUpdateUtils";
 
 export function createRenderer(options) {
   // 获取用户传入的自定义渲染方法
@@ -286,18 +287,33 @@ export function createRenderer(options) {
   }
 
   function processComponent(n1, n2: any, container: any, parentComponent, anchor) {
-    mountComponent(n2, container, parentComponent, anchor);
+    if (!n1) {
+      mountComponent(n2, container, parentComponent, anchor);
+    } else {
+      updateComponent(n1, n2)
+    }
+  }
+
+  function updateComponent(n1, n2) {
+    const instance = (n2.component = n1.component)
+    if (shouldUpdateComponent(n1, n2)) {
+      instance.next = n2
+      instance.update()
+    } else {
+      n2.el = n1.el
+      instance.vnode = n2
+    }
   }
 
   function mountComponent(initialVnode: any, container, parentComponent, anchor) {
-    const instance = createComponentInstance(initialVnode, parentComponent);
+    const instance = (initialVnode.component = createComponentInstance(initialVnode, parentComponent));
 
     setupComponent(instance);
     setupRenderEffect(instance, initialVnode, container, anchor);
   }
 
   function setupRenderEffect(instance: any, initialVnode, container, anchor) {
-    effect(() => {
+    instance.update = effect(() => {
       const { proxy } = instance
       if (!instance.isMounted) {
         console.log("init")
@@ -308,7 +324,12 @@ export function createRenderer(options) {
         initialVnode.el = subTree.el;
         instance.isMounted = true;
       } else {
-        console.log("update")
+        console.log("updateComponent")
+        const { vnode, next } = instance
+        if (next) {
+          next.el = vnode.el
+          updateComponentPreRender(instance, next)
+        }
         const subTree = instance.render.call(proxy);
         const prevSubTree = instance.subTree;
         instance.subTree = subTree
@@ -322,6 +343,13 @@ export function createRenderer(options) {
     createApp: createAppAPI(render),
   };
 }
+
+function updateComponentPreRender(instance, nextVNode) {
+  instance.vnode = nextVNode
+  instance.next = null
+  instance.props = nextVNode.props
+}
+
 // 最长递增子序列算法
 function getSequence(arr) {
   const p = arr.slice();

@@ -9,7 +9,8 @@ import { proxyRefs } from "../reactivity";
 let currentInstance = null;
 export function createComponentInstance(vnode, parent) {
   const component = {
-    vnode,
+    vnode, // 当前节点
+    next: null, // 新节点
     type: vnode.type,
     setupState: {},
     props: {},
