@@ -39,13 +39,13 @@
 - [x] 支持 getCurrentInstance
 - [x] 支持 provide/inject
 - [x] 支持组件类型
-- [ ] nextTick 的实现
+- [x] nextTick 的实现
 
 ### compiler-core
 
-- [x] 解析插值
-- [x] 解析 element
-- [x] 解析 text
+- [ ] 解析插值
+- [ ] 解析 element
+- [ ] 解析 text
 - [ ] 解析 三种联合类型
 
 ### runtime-dom

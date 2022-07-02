@@ -5,6 +5,7 @@ import { createComponentInstance, setupComponent } from "./component";
 import { createAppAPI } from "./createApp";
 import { Fragment, Text } from "./vnode";
 import { shouldUpdateComponent } from "./componentUpdateUtils";
+import { queueJobs } from "./scheduler";
 
 export function createRenderer(options) {
   // 获取用户传入的自定义渲染方法
@@ -335,8 +336,14 @@ export function createRenderer(options) {
         instance.subTree = subTree
         patch(prevSubTree, subTree, container, instance, anchor);
       }
-    })
-
+    },
+      {
+        // 实现视图异步更新
+        scheduler() {
+          queueJobs(instance.update);
+        },
+      }
+    )
   }
 
   return {
