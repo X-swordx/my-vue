@@ -154,7 +154,47 @@ export function createRenderer(options) {
         i++;
       }
     } else {
-      ///3、中间对比
+      //3、中间对比
+      let s1 = i
+      let s2 = i
+
+      const toBePatched = e2 - s2 + 1
+      let patched = 0
+      // key 的作用是把复杂度从O(n) -> O(1)
+      const keyToNewIndexMap = new Map()
+
+      for (let i = s2; i <= e2; i++) {
+        const nextChild = c2[i]
+        keyToNewIndexMap.set(nextChild.key, i)
+      }
+
+      for (let i = s1; i <= e1; i++) {
+        const prevChild = c1[i]
+        if (patched >= toBePatched) {
+          hostRemove(prevChild.el)
+          continue
+        }
+        let newIndex
+        // 如果用户没有写key
+        if (prevChild.key !== null) {
+          newIndex = keyToNewIndexMap.get(prevChild.key)
+        } else {
+          for (let j = s2; j < e2; j++) {
+            if (isSomeVNodeType(prevChild, c2[j])) {
+              newIndex = j
+              break
+            }
+
+          }
+        }
+        // 在新节点不存在
+        if (newIndex === undefined) {
+          hostRemove(prevChild.el)
+        } else {
+          patch(prevChild, c2[newIndex], container, parentComponent, null)
+          patched++
+        }
+      }
     }
   }
 
