@@ -21,6 +21,10 @@ function parseChildren(context) {
       node = parseElement(context)
     }
   }
+  if(!node) {
+    node = parseText(context);
+  }
+
   nodes.push(node)
   return nodes
 }
@@ -34,7 +38,7 @@ function parseInterpolation(context) {
 
   advanceBy(context, openDelimiter.length)
   const rawContentLength = closeIndex - openDelimiter.length
-  const rawContent = context.source.slice(0, rawContentLength)
+  const rawContent = parseTextData(context, rawContentLength)
   const content = rawContent.trim()
   advanceBy(context, content.length)
 
@@ -84,4 +88,20 @@ function createParserContext(content: string): any {
 // 推进：删除已经处理好的模板
 function advanceBy(context: any, length: number) {
   context.source = context.source.slice(length);
+}
+
+function parseText(context: any) {
+  const content = parseTextData(context, context.source.length);
+
+  return {
+    type: NodeTypes.TEXT,
+    content,
+  };
+}
+
+function parseTextData(context: any, length) {
+  const content = context.source.slice(0, length);
+
+  advanceBy(context, length);
+  return content;
 }
