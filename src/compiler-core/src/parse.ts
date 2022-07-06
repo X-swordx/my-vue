@@ -119,6 +119,7 @@ function parseTag(context: any, type: TagType) {
 function createRoot(children) {
   return {
     children,
+    type: NodeTypes.ROOT
   };
 }
 
