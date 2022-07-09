@@ -1,4 +1,5 @@
 // 工具函数
+export * from "./toDisplayString";
 export const extend = Object.assign
 
 export const EMPTY_OBJ = {};
