@@ -22,7 +22,6 @@
 - [x] 支持 unref
 - [x] 支持 proxyRefs
 - [x] computed 的实现
-- [x] watch 的实现
 
 ### runtime-core
 
@@ -40,7 +39,8 @@
 - [x] 支持 provide/inject
 - [x] 支持组件类型
 - [x] nextTick 的实现
-
+- [x] watch 的实现
+- [x] watchEffect 的实现
 ### compiler-core
 
 - [x] 解析插值
