@@ -1,6 +1,6 @@
 # my-vue
 
-基于 vue3 源码实现的一个 由TDD驱动的happy path 版 vue3
+基于 vue3 源码实现的一个 由TDD驱动的happy path 版 mini vue库
 
 **WIP**
 ### reactivity
