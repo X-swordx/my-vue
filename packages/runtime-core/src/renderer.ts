@@ -396,7 +396,7 @@ export function createRenderer(options) {
           console.log('init');
           // 执行h函数也就是createVNode返回一个vnode
           const subTree = (instance.subTree = normalizeVNode(
-            instance.render.call(proxy, proxy)
+            instance.render?.call(proxy, proxy)
           ));
           patch(null, subTree, container, instance, anchor);
           // 挂载 $el
