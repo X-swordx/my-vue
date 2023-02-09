@@ -2,7 +2,7 @@
  * @Author: zhengchengxuan 534370078@qq.com
  * @Date: 2023-01-11 21:12:08
  * @LastEditors: zhengchengxuan 534370078@qq.com
- * @LastEditTime: 2023-02-09 22:52:24
+ * @LastEditTime: 2023-02-09 22:57:20
  * @FilePath: \my-vue\vitest.config.ts
  * @Description:
  */
@@ -16,7 +16,7 @@ export default defineConfig({
   resolve: {
     alias: [
       {
-        find: /@my-vue\/([\w-]*)*/,
+        find: /@my-vue\/([\w-]*)/,
         replacement: path.resolve(__dirname, 'packages') + '/$1/src',
       },
     ],

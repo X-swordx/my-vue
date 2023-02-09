@@ -1,6 +1,6 @@
-import { computed } from '../src/computed';
-import { reactive } from '../src/reactive';
+import { computed, reactive } from '../src';
 import { vi } from 'vitest';
+
 describe('computed', () => {
   it('happy path', () => {
     // 接受一个 getter 函数，并根据 getter 的返回值返回一个不可变的响应式 ref 对象

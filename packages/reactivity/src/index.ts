@@ -1,4 +1,4 @@
-export { ref, proxyRefs, unRef, isRef } from "./ref";
+export { ref, proxyRefs, unRef, isRef } from './ref';
 
 export {
   reactive,
@@ -7,6 +7,8 @@ export {
   isReactive,
   isReadonly,
   isProxy,
-} from "./reactive";
+} from './reactive';
 
-export {effect, stop, ReactiveEffect} from "./effect"
+export { effect, stop, ReactiveEffect } from './effect';
+
+export { computed } from './computed';

@@ -2,7 +2,7 @@ import { effect } from '@my-vue/reactivity';
 import { EMPTY_OBJ, ShapeFlags } from '@my-vue/shared';
 import { createComponentInstance, setupComponent } from './component';
 import { createAppAPI } from './createApp';
-import { Fragment, Text } from './vnode';
+import { Fragment, Text, normalizeVNode } from './vnode';
 import { shouldUpdateComponent } from './componentUpdateUtils';
 import { queueJobs } from './scheduler';
 
@@ -14,6 +14,8 @@ export function createRenderer(options) {
     insert: hostInsert,
     remove: hostRemove,
     setElementText: hostSetElementText,
+    setText: hostSetText,
+    createText: hostCreateText,
   } = options;
 
   function render(vnode, container) {
@@ -21,50 +23,67 @@ export function createRenderer(options) {
   }
   // n1 -> oldVnode
   // n2 -> newVnode
-  function patch(n1, n2, container, parentComponent, anchor) {
+  function patch(n1, n2, container, anchor, parentComponent = null) {
     // 判断 vnode 是 element 还是 component 类型
     const { shapeFlag, type } = n2;
 
     switch (type) {
       case Fragment:
-        processFragment(n1, n2, container, parentComponent, anchor);
+        processFragment(n1, n2, container, anchor, parentComponent);
         break;
       case Text:
         processText(n1, n2, container);
         break;
       default:
         if (shapeFlag & ShapeFlags.ELEMENT) {
-          processElement(n1, n2, container, parentComponent, anchor);
+          processElement(n1, n2, container, anchor, parentComponent);
         } else if (shapeFlag & ShapeFlags.STATEFUL_COMPONENT) {
-          processComponent(n1, n2, container, parentComponent, anchor);
+          processComponent(n1, n2, container, anchor, parentComponent);
         }
         break;
     }
   }
 
   function processText(n1, n2: any, container: any) {
-    const { children } = n2;
-    const textNode = (n2.el = document.createTextNode(children));
-
-    container.append(textNode);
+    if (n1 === null) {
+      // n1 是 null 说明是 init 的阶段
+      // 基于 createText 创建出 text 节点，然后使用 insert 添加到 el 内
+      hostInsert((n2.el = hostCreateText(n2.children as string)), container);
+    } else {
+      // update
+      // 先对比一下 updated 之后的内容是否和之前的不一样
+      // 在不一样的时候才需要 update text
+      // 这里抽离出来的接口是 setText
+      // 注意，这里一定要记得把 n1.el 赋值给 n2.el, 不然后续是找不到值的
+      const el = (n2.el = n1.el!);
+      if (n2.children !== n1.children) {
+        console.log('更新 Text 类型的节点');
+        hostSetText(el, n2.children as string);
+      }
+    }
   }
 
   function processFragment(
-    n1,
+    n1: any,
     n2: any,
     container: any,
-    parentComponent,
-    anchor
+    anchor,
+    parentComponent
   ) {
-    mountChildren(n2.children, container, parentComponent, anchor);
+    // 只需要渲染 children ，然后给添加到 container 内
+    if (!n1) {
+      // 初始化 Fragment 逻辑点
+      console.log('初始化 Fragment 类型的节点');
+      mountChildren(n2.children, container, parentComponent, anchor);
+    }
   }
 
   function processElement(
     n1,
     n2: any,
     container: any,
-    parentComponent,
-    anchor
+    anchor,
+    parentComponent
   ) {
     if (!n1) {
       mountElement(n2, container, parentComponent, anchor);
@@ -73,7 +92,7 @@ export function createRenderer(options) {
     }
   }
 
-  function patchElement(n1, n2, container, parentComponent, anchor) {
+  function patchElement(n1, n2, container, anchor, parentComponent) {
     console.log('patchElement');
     console.log('n1', n1);
     console.log('n2', n2);
@@ -86,7 +105,7 @@ export function createRenderer(options) {
     patchProps(el, oldProps, newProps);
   }
 
-  function patchChildren(n1, n2, container, parentComponent, anchor) {
+  function patchChildren(n1, n2, container, anchor, parentComponent) {
     const prevShapeFlag = n1.shapeFlag;
     const nextShapeFlag = n2.shapeFlag;
     const c1 = n1.children;
@@ -119,8 +138,8 @@ export function createRenderer(options) {
     c1,
     c2,
     container,
-    parentComponent,
-    parentAnchor
+    parentAnchor,
+    parentComponent
   ) {
     const l2 = c2.length;
     let i = 0;
@@ -280,25 +299,50 @@ export function createRenderer(options) {
     }
   }
 
-  function mountElement(vnode: any, container, parentComponent, anchor) {
+  function mountElement(vnode: any, container, anchor, parentComponent) {
     const { type, props, children, shapeFlag } = vnode;
+    // 1. 先创建 element
+    // 基于可扩展的渲染 api
     const el = (vnode.el = hostCreateElement(type));
-
+    // 支持单子组件和多子组件的创建
     if (shapeFlag & ShapeFlags.TEXT_CHILDREN) {
-      el.textContent = children;
+      // 举个栗子
+      // render(){
+      //     return h("div",{},"test")
+      // }
+      // 这里 children 就是 test ，只需要渲染一下就完事了
+      console.log(`处理文本:${vnode.children}`);
+      hostSetElementText(el, vnode.children);
     } else if (shapeFlag & ShapeFlags.ARRAY_CHILDREN) {
+      // 举个栗子
+      // render(){
+      // Hello 是个 component
+      //     return h("div",{},[h("p"),h(Hello)])
+      // }
+      // 这里 children 就是个数组了，就需要依次调用 patch 递归来处理
       mountChildren(children, el, parentComponent, anchor);
     }
 
-    for (const key in props) {
-      const val = props[key];
-      hostPatchProp(el, key, null, val);
+    if (props) {
+      for (const key in props) {
+        // todo
+        // 需要过滤掉vue自身用的key
+        // 比如生命周期相关的 key: beforeMount、mounted
+        const val = props[key];
+        hostPatchProp(el, key, null, val);
+      }
     }
 
     hostInsert(el, container, anchor);
+
+    // todo
+    // 触发 mounted() 钩子
+    console.log('vnodeHook  -> onVnodeMounted');
+    console.log('DirectiveHook  -> mounted');
+    console.log('transition  -> enter');
   }
 
-  function mountChildren(children: any, container, parentComponent, anchor) {
+  function mountChildren(children: any, container, anchor, parentComponent) {
     children.forEach((v) => {
       patch(null, v, container, parentComponent, anchor);
     });
@@ -308,8 +352,8 @@ export function createRenderer(options) {
     n1,
     n2: any,
     container: any,
-    parentComponent,
-    anchor
+    anchor,
+    parentComponent
   ) {
     if (!n1) {
       mountComponent(n2, container, parentComponent, anchor);
@@ -332,8 +376,8 @@ export function createRenderer(options) {
   function mountComponent(
     initialVnode: any,
     container,
-    parentComponent,
-    anchor
+    anchor,
+    parentComponent
   ) {
     const instance = (initialVnode.component = createComponentInstance(
       initialVnode,
@@ -351,9 +395,8 @@ export function createRenderer(options) {
         if (!instance.isMounted) {
           console.log('init');
           // 执行h函数也就是createVNode返回一个vnode
-          const subTree = (instance.subTree = instance.render.call(
-            proxy,
-            proxy
+          const subTree = (instance.subTree = normalizeVNode(
+            instance.render.call(proxy, proxy)
           ));
           patch(null, subTree, container, instance, anchor);
           // 挂载 $el
@@ -366,10 +409,10 @@ export function createRenderer(options) {
             next.el = vnode.el;
             updateComponentPreRender(instance, next);
           }
-          const subTree = instance.render.call(proxy, proxy);
+          const nextTree = normalizeVNode(instance.render.call(proxy, proxy));
           const prevSubTree = instance.subTree;
-          instance.subTree = subTree;
-          patch(prevSubTree, subTree, container, instance, anchor);
+          instance.subTree = nextTree;
+          patch(prevSubTree, nextTree, container, instance, anchor);
         }
       },
       {
