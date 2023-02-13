@@ -41,6 +41,7 @@
 - [x] nextTick 的实现
 - [x] watch 的实现
 - [x] watchEffect 的实现
+- [x] Teleport内置组件
 ### compiler-core
 
 - [x] 解析插值
@@ -51,6 +52,14 @@
 ### runtime-dom
 
 - [x] 支持 custom renderer
+### runtime-text
 
-后续会抽空输出实现过程自己的收获
+- [x] 支持测试 runtime-core 的逻辑
+
+### infrastructure
+
+- [x] support monorepo with pnpm
+- [x] use vitest for tests
+
+后续会不断添加新的API功能实现
 

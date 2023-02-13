@@ -2,7 +2,7 @@ import { effect } from '@my-vue/reactivity';
 import { EMPTY_OBJ, ShapeFlags } from '@my-vue/shared';
 import { createComponentInstance, setupComponent } from './component';
 import { createAppAPI } from './createApp';
-import { Fragment, Text, normalizeVNode } from './vnode';
+import { Fragment, Text, normalizeVNode, Teleport } from './vnode';
 import { shouldUpdateComponent } from './componentUpdateUtils';
 import { queueJobs } from './scheduler';
 
@@ -39,6 +39,20 @@ export function createRenderer(options) {
           processElement(n1, n2, container, anchor, parentComponent);
         } else if (shapeFlag & ShapeFlags.STATEFUL_COMPONENT) {
           processComponent(n1, n2, container, anchor, parentComponent);
+        } else if (shapeFlag & ShapeFlags.TELEPORT) {
+          // 调用 Teleport 组件选项中的process 函数将控制权交接出去
+          // 传递给 process 函数的第五个参数是渲染器的一些内部方法
+          type.process(n1, n2, container, anchor, {
+            patch,
+            patchChildren,
+            move(vnode, container, anchor) {
+              hostInsert(
+                vnode.component ? vnode.component.subTree.el : vnode.el,
+                container,
+                anchor
+              );
+            },
+          });
         }
         break;
     }

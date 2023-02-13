@@ -2,7 +2,7 @@
  * @Author: zhengchengxuan 534370078@qq.com
  * @Date: 2023-01-11 19:44:22
  * @LastEditors: zhengchengxuan 534370078@qq.com
- * @LastEditTime: 2023-02-09 23:21:25
+ * @LastEditTime: 2023-02-14 00:29:51
  * @FilePath: \my-vue\packages\runtime-core\src\vnode.ts
  * @Description:
  */
@@ -10,6 +10,40 @@ import { ShapeFlags } from '@my-vue/shared';
 
 export const Fragment = Symbol('Fragment');
 export const Text = Symbol('Text');
+export const Teleport = {
+  __isTeleport: true,
+  process(n1, n2, container, anchor, internals) {
+    // 通过 internals 参数取得渲染器的内部方法
+    const { patch, patchChildren } = internals;
+    // 如果旧 VNode n1 不存在，则是全新的挂载，否则执行更新
+    if (!n1) {
+      // 挂载
+      // 获取挂载容器
+      const target =
+        typeof n2.props.to === 'string'
+          ? document.querySelector(n2.props.to)
+          : n2.props.to;
+      // 将 n2.children 渲染到指定挂载点
+      n2.children.forEach((c) => {
+        patch(null, c, target, anchor);
+      });
+    } else {
+      // 更新
+      patchChildren(n1, n2, container);
+      // 如果新旧 to 参数的值不同， 则需要对内容进行移动
+      if (n2.props.to !== n1.props.to) {
+        const newTarget =
+          typeof n2.props.to === 'string'
+            ? document.querySelector(n2.props.to)
+            : n2.props.to;
+        // 移动到新容器上
+        n2.children.forEach((c) => {
+          patch(null, c, newTarget, anchor);
+        });
+      }
+    }
+  },
+};
 
 export { createVNode as createElementVNode };
 
@@ -33,6 +67,10 @@ export function createVNode(type, props?, children?) {
   if (vnode.shapeFlag & ShapeFlags.STATEFUL_COMPONENT) {
     if (typeof children === 'object') {
       vnode.shapeFlag |= ShapeFlags.SLOT_CHILDREN;
+    }
+    // 给 Teleport 打上 shapeFlag
+    if (typeof type === 'object' && type.__isTeleport) {
+      vnode.shapeFlag = ShapeFlags.TELEPORT;
     }
   }
 
